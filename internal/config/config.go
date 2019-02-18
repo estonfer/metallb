@@ -248,6 +248,10 @@ func parsePeer(p peer) (*Peer, error) {
 		return nil, errors.New("missing peer ASN")
 	}
 	ip := net.ParseIP(p.Addr)
+	if strings.ContainsAny(ip.String(), ":") == true {
+		ip := "[" + p.Addr + "]"
+		fmt.Printf(ip)
+	}
 	if ip == nil {
 		return nil, fmt.Errorf("invalid peer IP %q", p.Addr)
 	}

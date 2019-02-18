@@ -10,6 +10,12 @@ import (
 	"time"
 )
 
+type messageHandler interface {
+	sendUpdate(w io.Writer, asn uint32, ibgp bool, defaultNextHop net.IP, adv *Advertisement) error
+	sendWithdraw(w io.Writer, prefixes []*net.IPNet) error
+}
+type mhLegacy int
+
 func sendOpen(w io.Writer, asn uint32, routerID net.IP, holdTime time.Duration) error {
 	if routerID.To4() == nil {
 		panic("non-ipv4 address used as RouterID")
@@ -279,7 +285,7 @@ func readCapabilities(r io.Reader, ret *openResult) error {
 	}
 }
 
-func sendUpdate(w io.Writer, asn uint32, ibgp bool, defaultNextHop net.IP, adv *Advertisement) error {
+func (mh mhLegacy) sendUpdate(w io.Writer, asn uint32, ibgp bool, defaultNextHop net.IP, adv *Advertisement) error {
 	var b bytes.Buffer
 
 	hdr := struct {
@@ -381,7 +387,7 @@ func encodePathAttrs(b *bytes.Buffer, asn uint32, ibgp bool, defaultNextHop net.
 	return nil
 }
 
-func sendWithdraw(w io.Writer, prefixes []*net.IPNet) error {
+func (mh mhLegacy) sendWithdraw(w io.Writer, prefixes []*net.IPNet) error {
 	var b bytes.Buffer
 
 	hdr := struct {
@@ -424,3 +430,4 @@ func sendKeepalive(w io.Writer) error {
 	}
 	return binary.Write(w, binary.BigEndian, msg)
 }
+
